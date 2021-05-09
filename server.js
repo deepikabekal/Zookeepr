@@ -74,7 +74,29 @@ function filterByQuery(query, animalsArray) {
 }
 
 
+//creating a route to get a specific animal
+app.get('/api/animals/:id', (req, res) => {    
+    const result = findById(req.params.id, animals);    
 
+    //if the user enters an id that exists then rerurn the data related to the id.
+    //else return 404 error code whihc will inform the user that the requested resource could not be found.
+    if (result)
+    {
+        res.json(result);
+    }
+    else
+    {
+        res.send(404);
+    }
+    res.json(result);
+});
+
+function findById (id, animalsArray) {
+    //if the [0] is ommitted then the output will be an array of single item
+    //[0] removes the item (which is an object) from the array
+    const result = animalsArray.filter( animal => animal.id === id)[0];
+    return result;
+}
 
 
 
