@@ -1,11 +1,20 @@
 //import packages and files
 const { query } = require('express');
 const express = require ('express');
+const fs = require ('fs');
+const path = require ('path');
 //get the data
 const { animals } = require ('./data/animals.json');
 
 //instantiate the server
 const app = express();
+
+//every server whihc has post request should have the below 2 statements
+//parse incoming string or array data to key value pairs which can be accessed in req.body
+app.use(express.urlencoded({extended : true}));
+
+//takes incoming JSON data and parses it into the req.body
+app.use(express.json());
 
 //
 const PORT = process.env.PORT || 3001;
@@ -91,22 +100,70 @@ app.get('/api/animals/:id', (req, res) => {
     res.json(result);
 });
 
+//function to get individual animals
 function findById (id, animalsArray) {
     //if the [0] is ommitted then the output will be an array of single item
     //[0] removes the item (which is an object) from the array
     const result = animalsArray.filter( animal => animal.id === id)[0];
     return result;
-}
+};
 
 
+//create a route that accepts data from the client
+app.post('/api/animals', (req, res) => {
+    //req.body is where our incoming content will be
+    //console.log(req.body);
+    // set id based on what the next index of the array will be
+    req.body.id = animals.length.toString();
+    //console.log("name", req.body.example = "ting");
 
+    //const animal = createNewAnimal(req.body, animals);
+    //res.json(animal);
 
+    // if any data in req.body is incorrect, send 400 error back
+    if (!validateAnimal(req.body)) {
+        res.status(400).send('The animal is not properly formatted.');
+    } else {
+        const animal = createNewAnimal(req.body, animals);
+        res.json(animal);
+    }
 
+});
 
+//funtion to take data from req.body and add it to aminals.jsson file
+function createNewAnimal (body, animalsArray) {
+    //console.log(body);
+    const animal = body;
+    animalsArray.push(animal);
 
+    //the new animal only gets added to the copy of the animals array in this file but not to the animals.json file
+    //hence we have to write this data to the animals.json file.
+    fs.writeFileSync(
+        path.join(__dirname, './data/animals.json'),
+        JSON.stringify({ animals : animalsArray }, null, 2)
+    );
+        //console.log (path.join(__dirname, './data/animals.json' ));
+    //return the finished code to the POST route for response
+    return (animal);
 
+};
 
-
+//validation of the data
+function validateAnimal(animal) {
+    if (!animal.name || typeof animal.name !== 'string') {
+      return false;
+    }
+    if (!animal.species || typeof animal.species !== 'string') {
+      return false;
+    }
+    if (!animal.diet || typeof animal.diet !== 'string') {
+      return false;
+    }
+    if (!animal.personalityTraits || !Array.isArray(animal.personalityTraits)) {
+      return false;
+    }
+    return true;
+  };
 
 
 
