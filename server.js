@@ -1,5 +1,4 @@
 //import packages and files
-const { query } = require('express');
 const express = require ('express');
 const fs = require ('fs');
 const path = require ('path');
@@ -16,8 +15,12 @@ app.use(express.urlencoded({extended : true}));
 //takes incoming JSON data and parses it into the req.body
 app.use(express.json());
 
+//tells the server to keep the files ready and not to gate it behind the endpoint
+app.use(express.static('public'));
+
 //
 const PORT = process.env.PORT || 3001;
+
 
 //creating a route
 app.get('/api/animals', (req,res) => {
@@ -165,6 +168,26 @@ function validateAnimal(animal) {
     return true;
   };
 
+//html routes
+//index
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
+
+//animals page
+app.get('/animals', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/animals.html'));
+});
+
+//zookeepers page
+app.get('/zookeepers', (req,res) => {
+    res.sendFile(path.join(__dirname, './public/zookeepers.html'));
+});
+
+//wildcard routes to redirect the user if entered wrong route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+})
 
 
 
